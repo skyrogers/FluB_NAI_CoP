@@ -2,7 +2,7 @@
 
 # this script calculates FluB COP and creates COP plots
 # Author:Lauren Grant
-## Editor: Skyler Rogers
+# Editor: Skyler Rogers
 # 05/09/2025
 
 # Manuscript colors:
