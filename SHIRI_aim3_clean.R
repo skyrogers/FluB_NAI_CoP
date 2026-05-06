@@ -227,57 +227,56 @@ shiri_aim3_wide <-  shiri_aim3_wide %>%
                                        "1" = "Vaccinated"))
 
 #Descriptive statistics table stratified by vaccination status
-gt_table1_vacc_stat <- shiri_aim3_wide %>%
-  dplyr::select(vacc_stat_2017_label, SEX, AGE_ENROLL, CASE_CONTROL,flub_type, vacc_stat_2017_label) %>%
-  tbl_summary(by = vacc_stat_2017_label, percent = "row", digits = list(SEX~c(0,1), AGE_ENROLL ~c(0,1,1), CASE_CONTROL~c(0,1), flub_type~c(0,1)),
-              label = list(SEX ~ "Sex",
-                           AGE_ENROLL ~ "Age",
-                           CASE_CONTROL ~ "Case/Control Status",
-                           flub_type ~ "Infection Status"))%>%
-  bold_labels() %>%
-  modify_footnote_header(
-    footnote = "Frequencies and row percentages of each characteristic reported as n(%).",
-    columns = all_stat_cols(),
-    replace = FALSE) %>%
-  modify_footnote_body(
-    footnote = "Healthcare personnel with “no symptomatic illness” did not report illness during study season.",
-    columns = "label",
-    rows = label  == "No symptomatic illness"
-  )
+#gt_table1_vacc_stat <- shiri_aim3_wide %>%
+#  dplyr::select(vacc_stat_2017_label, SEX, AGE_ENROLL, CASE_CONTROL,flub_type, vacc_stat_2017_label) %>%
+#  tbl_summary(by = vacc_stat_2017_label, percent = "row", digits = list(SEX~c(0,1), AGE_ENROLL ~c(0,1,1), CASE_CONTROL~c(0,1), flub_type~c(0,1)),
+#              label = list(SEX ~ "Sex",
+#                           AGE_ENROLL ~ "Age",
+#                           CASE_CONTROL ~ "Case/Control Status",
+#                           flub_type ~ "Infection Status"))%>%
+#  bold_labels() %>%
+#  modify_footnote_header(
+#    footnote = "Frequencies and row percentages of each characteristic reported as n(%).",
+#    columns = all_stat_cols(),
+#    replace = FALSE) %>%
+#  modify_footnote_body(
+#    footnote = "Healthcare personnel with “no symptomatic illness” did not report illness during study season.",
+#    columns = "label",
+#    rows = label  == "No symptomatic illness"
+#  )
 
-gt_table1_vacc_stat <- gt_table1_vacc_stat %>%
-  modify_table_body(
-    function(table1) {
-      table1 <- table1 %>%
-        dplyr::add_row(
-          variable = "flub_type",  
-          label = "– B/non-repeatable",
-          row_type = "level",     
-          stat_1 = "0 (0.0%)", stat_2 = "1 (100.0%)",
-          .after = which(table1$label == "Influenza B")
-        ) %>%
-        dplyr::add_row(
-          variable = "flub_type",  
-          label = "– B/not able to lineage",
-          row_type = "level",     
-          stat_1 = "2 (33.3%)",stat_2 = "4 (66.7%)",
-          .after = which(table1$label == "Influenza B")
-        ) %>%
-        dplyr::add_row(
-          variable = "flub_type",
-          label = "– B/Yamagata",
-          row_type = "level",
-          stat_1 = "35 (61.4%)", stat_2 = "22 (38.6%)", 
-          .after = which(table1$label == "Influenza B")
-        )
-      table1 })
+#gt_table1_vacc_stat <- gt_table1_vacc_stat %>%
+#  modify_table_body(
+#    function(table1) {
+#      table1 <- table1 %>%
+#        dplyr::add_row(
+#          variable = "flub_type",  
+#          label = "– B/non-repeatable",
+#          row_type = "level",     
+#          stat_1 = "0 (0.0%)", stat_2 = "1 (100.0%)",
+#          .after = which(table1$label == "Influenza B")
+#        ) %>%
+#        dplyr::add_row(
+#          variable = "flub_type",  
+#          label = "– B/not able to lineage",
+#          row_type = "level",     
+#          stat_1 = "2 (33.3%)",stat_2 = "4 (66.7%)",
+#          .after = which(table1$label == "Influenza B")
+#        ) %>%
+#        dplyr::add_row(
+#          variable = "flub_type",
+#          label = "– B/Yamagata",
+#          row_type = "level",
+#          stat_1 = "35 (61.4%)", stat_2 = "22 (38.6%)", 
+#          .after = which(table1$label == "Influenza B")
+#        )
+#      table1 })
 
-gt_table1_vacc_stat <- as_gt(gt_table1_vacc_stat) %>%
-  cols_width(
-    everything() ~ px(250))
-gt_table1_vacc_stat
-gtsave(gt_table1_vacc_stat, filename = file.path(secure_data, "Tables + Figures/table1_vacc_stat.pdf"))
-
+#gt_table1_vacc_stat <- as_gt(gt_table1_vacc_stat) %>%
+#  cols_width(
+#    everything() ~ px(250))
+#gt_table1_vacc_stat
+#gtsave(gt_table1_vacc_stat, filename = file.path(secure_data, "Tables + Figures/table1_vacc_stat.pdf"))
 
 table1 <- shiri_aim3_wide %>%
   dplyr::select(SEX, AGE_ENROLL, vacc_stat_2017_label, CASE_CONTROL,flub_type) %>%
@@ -347,7 +346,7 @@ shiri_aim3_wide_q1 <- shiri_aim3_wide %>%
 #compare baseline NAI by vaccination status
 #B/Phuket NAI
 t.test(shiri_aim3_wide_q1$PHU_BYAM_NAI_LOG2_S1 ~ shiri_aim3_wide_q1$VACC_STAT_2017) #p-value = 1.169e-05
-wilcox.test(shiri_aim3_wide_q1$PHU_BYAM_NAI_LOG2_S1 ~ shiri_aim3_wide_q1$VACC_STAT_2017) #p-value = 2.412e-05
+#wilcox.test(shiri_aim3_wide_q1$PHU_BYAM_NAI_LOG2_S1 ~ shiri_aim3_wide_q1$VACC_STAT_2017) #p-value = 2.412e-05
 
 phuket_nai_vax <- ggplot(shiri_aim3_wide_q1, aes(x=factor(VACC_STAT_2017), y=PHU_BYAM_NAI_LOG2_S1)) +
   geom_violin(fill = "#f28e69") +
@@ -371,7 +370,7 @@ qqline(shiri_aim3_wide_q1$PHU_BYAM_NAI_LOG2_S1)
 
 #B/Brisbane NAI
 t.test(shiri_aim3_wide_q1$BRIS_BVIC_NAI_LOG2_S1 ~ shiri_aim3_wide_q1$VACC_STAT_2017) #p-value = 0.05243
-wilcox.test(shiri_aim3_wide_q1$BRIS_BVIC_NAI_LOG2_S1 ~ shiri_aim3_wide_q1$VACC_STAT_2017) #p-value = 0.03903
+#wilcox.test(shiri_aim3_wide_q1$BRIS_BVIC_NAI_LOG2_S1 ~ shiri_aim3_wide_q1$VACC_STAT_2017) #p-value = 0.03903
 
 brisbane_nai_vax <-ggplot(shiri_aim3_wide_q1, aes(x=factor(VACC_STAT_2017), y=BRIS_BVIC_NAI_LOG2_S1)) +
   geom_violin(fill = "#1E76C3")+
@@ -396,7 +395,7 @@ qqline(shiri_aim3_wide_q1$BRIS_BVIC_NAI_LOG2_S1)
 #compare baseline HAI by vaccination status
 #B/Phuket HAI
 t.test(shiri_aim3_wide_q1$PHU_BYAM_HAI_LOG2_S1~ shiri_aim3_wide_q1$VACC_STAT_2017) #p-value = 0.02051
-wilcox.test(shiri_aim3_wide_q1$PHU_BYAM_HAI_LOG2_S1 ~ shiri_aim3_wide_q1$VACC_STAT_2017) #p-value = 0.02236
+#wilcox.test(shiri_aim3_wide_q1$PHU_BYAM_HAI_LOG2_S1 ~ shiri_aim3_wide_q1$VACC_STAT_2017) #p-value = 0.02236
 
 phuket_hai_vax <- ggplot(shiri_aim3_wide_q1, aes(x=factor(VACC_STAT_2017), y=PHU_BYAM_HAI_LOG2_S1)) +
   geom_violin(fill = "#f28e69") +
@@ -420,7 +419,7 @@ qqline(shiri_aim3_wide_q1$PHU_BYAM_HAI_LOG2_S1)
 
 #B/Brisbane HAI
 t.test(shiri_aim3_wide_q1$BRIS_BVIC_HAI_LOG2_S1 ~ shiri_aim3_wide_q1$VACC_STAT_2017) #p-value = 0.1916
-wilcox.test(shiri_aim3_wide_q1$BRIS_BVIC_HAI_LOG2_S1 ~ shiri_aim3_wide_q1$VACC_STAT_2017) #p-value = 0.08192
+#wilcox.test(shiri_aim3_wide_q1$BRIS_BVIC_HAI_LOG2_S1 ~ shiri_aim3_wide_q1$VACC_STAT_2017) #p-value = 0.08192
 
 brisbane_hai_vax <-ggplot(shiri_aim3_wide_q1, aes(x=factor(VACC_STAT_2017), y=BRIS_BVIC_HAI_LOG2_S1)) +
   geom_violin(fill = "#1E76C3")+
@@ -624,7 +623,7 @@ shiri_aim3_cleaned<- shiri_aim3_cleaned %>%
                                 time_start_numeric),
     time_stop_numeric = ifelse(is.na(time_stop_numeric), 
                                as.numeric(study_end_date - study_start_date), 
-                               time_stop_numeric))
+                               time_stop_numeric)) #no original calculated values are NA in dataset
 
 #separate dataset by antigen for analysis
 #remove participants previously excluded from baseline titer analysis
@@ -1081,18 +1080,18 @@ ggsave(plot = foldchange_patchwork_HAI, width = 12, height = 5, dpi = 300, filen
 #compare paired S1 vs S2 NAI
 #B/Phuket
 t.test(shiri_aim3_wide_vax_phuk$PHU_BYAM_NAI_LOG2_S1, shiri_aim3_wide_vax_phuk$PHU_BYAM_NAI_LOG2_S2, paired = TRUE) #p-value = 0.08462
-wilcox.test(shiri_aim3_wide_vax_phuk$PHU_BYAM_NAI_LOG2_S1, shiri_aim3_wide_vax_phuk$PHU_BYAM_NAI_LOG2_S2, paired = TRUE) #p-value = 0.08062
+#wilcox.test(shiri_aim3_wide_vax_phuk$PHU_BYAM_NAI_LOG2_S1, shiri_aim3_wide_vax_phuk$PHU_BYAM_NAI_LOG2_S2, paired = TRUE) #p-value = 0.08062
 #B/Brisbane
 t.test(shiri_aim3_wide_vax_bris$BRIS_BVIC_NAI_LOG2_S1, shiri_aim3_wide_vax_bris$BRIS_BVIC_NAI_LOG2_S2, paired = TRUE) #p-value = 0.258
-wilcox.test(shiri_aim3_wide_vax_bris$BRIS_BVIC_NAI_LOG2_S1, shiri_aim3_wide_vax_bris$BRIS_BVIC_NAI_LOG2_S2, paired = TRUE) #p-value = 0.3582
+#wilcox.test(shiri_aim3_wide_vax_bris$BRIS_BVIC_NAI_LOG2_S1, shiri_aim3_wide_vax_bris$BRIS_BVIC_NAI_LOG2_S2, paired = TRUE) #p-value = 0.3582
 
 #compare paired S1 and S2 HAI
 #B/Phuket
 t.test(shiri_aim3_wide_vax_phuk$PHU_BYAM_HAI_LOG2_S1,shiri_aim3_wide_vax_phuk$PHU_BYAM_HAI_LOG2_S2,paired = TRUE) #p-value= 0.0681
-wilcox.test(shiri_aim3_wide_vax_phuk$PHU_BYAM_HAI_LOG2_S1,shiri_aim3_wide_vax_phuk$PHU_BYAM_HAI_LOG2_S2,paired = TRUE) #p-value: 0.04792
+#wilcox.test(shiri_aim3_wide_vax_phuk$PHU_BYAM_HAI_LOG2_S1,shiri_aim3_wide_vax_phuk$PHU_BYAM_HAI_LOG2_S2,paired = TRUE) #p-value: 0.04792
 #B/Brisbane
 t.test(shiri_aim3_wide_vax_bris$BRIS_BVIC_HAI_LOG2_S1,shiri_aim3_wide_vax_bris$BRIS_BVIC_HAI_LOG2_S2,paired = TRUE) #p-value= 2.183e-08
-wilcox.test(shiri_aim3_wide_vax_bris$BRIS_BVIC_HAI_LOG2_S1,shiri_aim3_wide_vax_bris$BRIS_BVIC_HAI_LOG2_S2,paired = TRUE) #p-value: 8.413e-09
+#wilcox.test(shiri_aim3_wide_vax_bris$BRIS_BVIC_HAI_LOG2_S1,shiri_aim3_wide_vax_bris$BRIS_BVIC_HAI_LOG2_S2,paired = TRUE) #p-value: 8.413e-09
 
 #GMT NAI in vaccinated HCP S1 vs. S2 
 #B/Phuket S1
