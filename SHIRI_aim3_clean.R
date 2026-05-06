@@ -1049,7 +1049,7 @@ table(shiri_aim3_wide_vax_bris$bris_dif)
 #B/Phuket
 phuket_fold_HAI_change <- ggplot(shiri_aim3_wide_vax_phuk, aes(x = reorder(STUDY_ID,ph_dif_hai), y = ph_dif_hai)) +
   geom_bar(stat = "identity", fill = "#f28e69") +
-  #  ggtitle("B/Phuket NAI titer fold changes") +
+  #  ggtitle("B/Phuket HAI titer fold changes") +
   ylab("HAI Titer Fold Change") + 
   xlab("Participant") +
   theme_minimal()+
@@ -1061,7 +1061,7 @@ table(shiri_aim3_wide_vax_phuk$ph_dif_hai)
 #B/Brisbane
 bris_fold_HAI_change <- ggplot(shiri_aim3_wide_vax_bris, aes(x = reorder(STUDY_ID,bris_dif_hai), y = bris_dif_hai)) +
   geom_bar(stat = "identity", fill= "#1E76C3") +
-  #  ggtitle("B/Brisbane NAI titer fold changes") +
+  #  ggtitle("B/Brisbane HAI titer fold changes") +
   ylab("HAI Titer Fold Change") + 
   xlab("Participant") +
   theme_minimal()+
