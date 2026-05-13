@@ -4,7 +4,7 @@
 #Author: Skyler Rogers
 #Email: skyroger@umich.edu
 
-##Last updated: 05/13/2026
+##Last updated: 05/04/2026
 #_____________________________________________________
 
 #Notes
@@ -52,7 +52,7 @@ geometric_mean_fold_ratio <- function(vax_gmt, unvax_gmt) {
 } 
 
 #create indicator variables to identify 2- and 4-fold titer increases and decreases from vaccination
-fold_rise_ind <- function(df, s1_val, s2_val, dif_val, twof_name, fourf_name, twof_name_d, fourf_name_d) {
+fold_change_ind <- function(df, s1_val, s2_val, dif_val, twof_name, fourf_name, twof_name_d, fourf_name_d) {
   df %>% mutate({{twof_name}} := case_when(
     {{dif_val}}>=1 & !is.na({{s1_val}}) ~ "1", 
     is.na({{s1_val}}) | is.na({{s2_val}}) ~ "NA",
@@ -88,7 +88,6 @@ gmfr <- function(s1_val, s2_val) {
 # Data cleaning / setup -----------------------------------------------------------
 
 #Import data
-secure_data <- Sys.getenv("SECURE_DATA_PATH")
 shiri_aim3_cleaned <- read_sas("Datasets/shiri_aim3_final.sas7bdat")
 
 #check variable names
@@ -156,13 +155,6 @@ shiri_aim3_wide <- mutate(shiri_aim3_wide, infected = ifelse(TYPE_FINAL=="FluB",
 shiri_aim3_wide_vax <- shiri_aim3_wide %>%
   filter(VACC_STAT_2017 !=0)
 
-#save datasets
-# write_csv(shiri_aim3_studyids, file.path(secure_data, "Datasets/shiri_aim3_studyids.csv"))
-# write_csv(shiri_aim3_wide, file.path(secure_data, "Datasets/SHIRI_AIM3_WIDE.csv"))
-# write_csv(shiri_aim3_wide_vax, file.path(secure_data, "Datasets/SHIRI_AIM3_vaccinated.csv"))
-# write_csv(shiri_aim3_cleaned, file.path(secure_data, "Datasets/SHIRI_AIM3_CLEANED_UPDATED.csv"))
-
-
 # Descriptive statistics --------------------------------------------------
 table(shiri_aim3_wide$TYPE_FINAL) #64 IBV cases, 113 IBV negative, 85 no symptomatic illness reported
 table(shiri_aim3_wide$CASE_CONTROL) #64 cases, 198 controls
@@ -229,59 +221,6 @@ shiri_aim3_wide <-  shiri_aim3_wide %>%
   mutate(vacc_stat_2017_label = recode(VACC_STAT_2017, 
                                        "0" = "Unvaccinated",
                                        "1" = "Vaccinated"))
-
-#Descriptive statistics table stratified by vaccination status
-#gt_table1_vacc_stat <- shiri_aim3_wide %>%
-#  dplyr::select(vacc_stat_2017_label, SEX, AGE_ENROLL, CASE_CONTROL,flub_type, vacc_stat_2017_label) %>%
-#  tbl_summary(by = vacc_stat_2017_label, percent = "row", digits = list(SEX~c(0,1), AGE_ENROLL ~c(0,1,1), CASE_CONTROL~c(0,1), flub_type~c(0,1)),
-#              label = list(SEX ~ "Sex",
-#                           AGE_ENROLL ~ "Age",
-#                           CASE_CONTROL ~ "Case/Control Status",
-#                           flub_type ~ "Infection Status"))%>%
-#  bold_labels() %>%
-#  modify_footnote_header(
-#    footnote = "Frequencies and row percentages of each characteristic reported as n(%).",
-#    columns = all_stat_cols(),
-#    replace = FALSE) %>%
-#  modify_footnote_body(
-#    footnote = "Healthcare personnel with “no symptomatic illness” did not report illness during study season.",
-#    columns = "label",
-#    rows = label  == "No symptomatic illness"
-#  )
-
-#gt_table1_vacc_stat <- gt_table1_vacc_stat %>%
-#  modify_table_body(
-#    function(table1) {
-#      table1 <- table1 %>%
-#        dplyr::add_row(
-#          variable = "flub_type",  
-#          label = "– B/non-repeatable",
-#          row_type = "level",     
-#          stat_1 = "0 (0.0%)", stat_2 = "1 (100.0%)",
-#          .after = which(table1$label == "Influenza B")
-#        ) %>%
-#        dplyr::add_row(
-#          variable = "flub_type",  
-#          label = "– B/not able to lineage",
-#          row_type = "level",     
-#          stat_1 = "2 (33.3%)",stat_2 = "4 (66.7%)",
-#          .after = which(table1$label == "Influenza B")
-#        ) %>%
-#        dplyr::add_row(
-#          variable = "flub_type",
-#          label = "– B/Yamagata",
-#          row_type = "level",
-#          stat_1 = "35 (61.4%)", stat_2 = "22 (38.6%)", 
-#          .after = which(table1$label == "Influenza B")
-#        )
-#      table1 })
-
-#gt_table1_vacc_stat <- as_gt(gt_table1_vacc_stat) %>%
-#  cols_width(
-#    everything() ~ px(250))
-#gt_table1_vacc_stat
-#gtsave(gt_table1_vacc_stat, filename = file.path(secure_data, "Tables + Figures/table1_vacc_stat.pdf"))
-
 table1 <- shiri_aim3_wide %>%
   dplyr::select(SEX, AGE_ENROLL, vacc_stat_2017_label, CASE_CONTROL,flub_type) %>%
   tbl_summary(by = CASE_CONTROL, digits = list(SEX~c(0,1), AGE_ENROLL ~c(0,1,1), vacc_stat_2017_label~c(0,1), flub_type~c(0,1)),
@@ -301,7 +240,7 @@ table1 <- shiri_aim3_wide %>%
     rows = label  == "No symptomatic illness"
   )%>%
   modify_footnote_body(
-    footnote = "Healthcare personnel with “Influenza B Negative” reported illness during study season, but tested negative for influenza B infection.",
+    footnote = "Healthcare personnel with “Influenza B Negative” reported illness during study season but tested negative for influenza B infection.",
     columns = "label",
     rows = label  == "Influenza B Negative"
   )
@@ -337,7 +276,7 @@ gt_table1 <- as_gt(table1) %>%
   cols_width(
     everything() ~ px(250))
 gt_table1
-gtsave(gt_table1, filename = file.path(secure_data, "Tables + Figures/table1_case_stat.pdf"))
+gtsave(gt_table1, filename = file.path(secure_data, "Tables + Figures/table1_case_stat.docx"))
 
 # Analysis Q1 ----------------------------------------------------------------
 ##Q1: Is S1 titer values different between influenza vaccinated and unvaccinated HCP?
@@ -445,6 +384,7 @@ hist(shiri_aim3_wide_q1$BRIS_BVIC_HAI_LOG2_S1)
 qqnorm(shiri_aim3_wide_q1$BRIS_BVIC_HAI_LOG2_S1)
 qqline(shiri_aim3_wide_q1$BRIS_BVIC_HAI_LOG2_S1)
 
+#format figures using patchwork
 nai_vax_boxplots <-phuket_nai_vax + brisbane_nai_vax
 nai_vax_boxplots
 hai_vax_boxplots <-phuket_hai_vax + brisbane_hai_vax
@@ -469,7 +409,7 @@ phuk_unvax_nai_gmt <- geometric_summary_log2(shiri_aim3_wide_q1_unvax$PHU_BYAM_N
 bris_vax_nai_gmt <- geometric_summary_log2(shiri_aim3_wide_q1_vax$BRIS_BVIC_NAI_LOG2_S1) #vax GMT (95% CI): 367.6 (298.2, 453.1) n=185 
 bris_unvax_nai_gmt <- geometric_summary_log2(shiri_aim3_wide_q1_unvax$BRIS_BVIC_NAI_LOG2_S1) #unvax GMT (95% CI): 250.8 (182.0, 345.6) n=74
 
-# NAI geometric mean ratios 
+# NAI geometric mean titer ratios 
 #B/Phuket 
 geometric_mean_fold_ratio(phuk_vax_nai_gmt, phuk_unvax_nai_gmt) #2.5 times higher NAI titers in vaccinated HCP, 95% CI (1.7, 3.6)
 #B/Brisbane
@@ -784,11 +724,11 @@ table_tvcoxph <- table_tvcoxph %>%
     Column_4 = "p-value")%>%
   tab_spanner(
     label = "Crude",
-    columns = c(Column_1, Spacer1, Column_2)
+    columns = c(Column_1, Spacer1, Column_2), replace = TRUE
   ) %>%
   tab_spanner(
     label = "Adjusted",
-    columns = c(Column_3,Spacer2, Column_4)
+    columns = c(Column_3,Spacer2, Column_4), replace = TRUE
   ) %>%
   tab_style(
     style = cell_text(size = px(14), weight = "bold"),
@@ -802,7 +742,7 @@ table_tvcoxph <- table_tvcoxph %>%
     table.width = pct(80),
     row_group.font.weight = "bold")%>%
   tab_footnote(
-    footnote = md("*p* < 0.05 ( * ), *p* < 0.01 ( ** ), *p* < 0.001 ( *** )"),
+    footnote = md("p < 0.05 ( * ), p < 0.01 ( ** ), p < 0.001 ( *** )"),
     locations = cells_column_labels(columns = c(Column_2,Column_4)))%>%
   tab_footnote(
     footnote = md("Adjusted models contained both NAI and HAI titer values of matched antigens as covariates."),
@@ -815,7 +755,7 @@ table_tvcoxph <- table_tvcoxph %>%
     locations = cells_row_groups(groups = "B/Brisbane (n=258)")
   )
 table_tvcoxph
-gtsave(table_tvcoxph, filename = file.path(secure_data, "Tables + Figures/table_tvcoxph.pdf"))
+gtsave(table_tvcoxph, filename = file.path(secure_data, "Tables + Figures/table_tvcoxph.docx"))
 
 # sensitivity analysis table
 table_coxph_sens <- data.frame(
@@ -870,7 +810,7 @@ table_coxph_sens <- table_coxph_sens %>%
     table.width = pct(80),
     row_group.font.weight = "bold")%>%
   tab_footnote(
-    footnote = md("*p* < 0.05 ( * ), *p* < 0.01 ( ** ), *p* < 0.001 ( *** )"),
+    footnote = md("p < 0.05 ( * ), p < 0.01 ( ** ), p < 0.001 ( *** )"),
     locations = cells_column_labels(columns = c(Column_2,Column_4)))%>%
   tab_footnote(
     footnote = md("Adjusted models contained both NAI and HAI titer values of matched antigens as covariates."),
@@ -884,10 +824,8 @@ table_coxph_sens <- table_coxph_sens %>%
   tab_footnote(
     footnote = "The vaccinated period of 38 HCP were removed due to S2 collection date occurring after the start of observed influenza B circulation in study.",
     locations = cells_row_groups(groups = c("B/Phuket (n=258)", "B/Brisbane (n=257)")))
-
 table_coxph_sens
-gtsave(table_coxph_sens, filename = file.path(secure_data, "Tables + Figures/table_sensitivity.pdf"))
-
+gtsave(table_coxph_sens, filename = file.path(secure_data, "Tables + Figures/table_sensitivity.docx"))
 
 # Analysis Q3 -------------------------------------------------------------
 #Did vaccination change antibody levels?
@@ -905,11 +843,11 @@ shiri_aim3_wide_vax$bris_dif_hai <- shiri_aim3_wide_vax$BRIS_BVIC_HAI_LOG2_S2-sh
 
 #create variables of fold-rise/fall >= 2 and >=4
 #B/Phuket
-shiri_aim3_wide_vax <- fold_rise_ind(shiri_aim3_wide_vax, PHU_BYAM_LOG_NAI_S1, PHU_BYAM_LOG_NAI_S2, ph_dif, ph_ge2, ph_ge4, ph_ge2_decrease, ph_ge4_decrease)
-shiri_aim3_wide_vax <- fold_rise_ind(shiri_aim3_wide_vax, PHU_BYAM_LOG_HAI_S1, PHU_BYAM_LOG_HAI_S2, ph_dif_hai, ph_ge2_hai, ph_ge4_hai, ph_ge2_hai_decrease, ph_ge4_hai_decrease)
+shiri_aim3_wide_vax <- fold_change_ind(shiri_aim3_wide_vax, PHU_BYAM_LOG_NAI_S1, PHU_BYAM_LOG_NAI_S2, ph_dif, ph_ge2, ph_ge4, ph_ge2_decrease, ph_ge4_decrease)
+shiri_aim3_wide_vax <- fold_change_ind(shiri_aim3_wide_vax, PHU_BYAM_LOG_HAI_S1, PHU_BYAM_LOG_HAI_S2, ph_dif_hai, ph_ge2_hai, ph_ge4_hai, ph_ge2_hai_decrease, ph_ge4_hai_decrease)
 #B/Brisbane
-shiri_aim3_wide_vax <- fold_rise_ind(shiri_aim3_wide_vax, BRIS_BVIC_LOG_NAI_S1, BRIS_BVIC_LOG_NAI_S2, bris_dif, bris_ge2, bris_ge4, bris_ge2_decrease, bris_ge4_decrease)
-shiri_aim3_wide_vax <- fold_rise_ind(shiri_aim3_wide_vax, BRIS_BVIC_LOG_HAI_S1, BRIS_BVIC_LOG_HAI_S2, bris_dif_hai, bris_ge2_hai, bris_ge4_hai, bris_ge2_hai_decrease, bris_ge4_hai_decrease)
+shiri_aim3_wide_vax <- fold_change_ind(shiri_aim3_wide_vax, BRIS_BVIC_LOG_NAI_S1, BRIS_BVIC_LOG_NAI_S2, bris_dif, bris_ge2, bris_ge4, bris_ge2_decrease, bris_ge4_decrease)
+shiri_aim3_wide_vax <- fold_change_ind(shiri_aim3_wide_vax, BRIS_BVIC_LOG_HAI_S1, BRIS_BVIC_LOG_HAI_S2, bris_dif_hai, bris_ge2_hai, bris_ge4_hai, bris_ge2_hai_decrease, bris_ge4_hai_decrease)
 
 #remove participants with missing S1 and S2 collection from analysis
 shiri_aim3_wide_vax_bris <- shiri_aim3_wide_vax %>%
@@ -1208,3 +1146,12 @@ table_gmt_q2_hai <- table_gmt_q2_hai %>%
     locations = cells_column_labels(columns = Column_3))
 table_gmt_q2_hai
 gtsave(table_gmt_q2_hai, filename = file.path(secure_data, "Tables + Figures/q2_gmt_s1s2_table_hai.pdf"))
+
+#save datasets
+#write_csv(shiri_aim3_studyids, file.path(secure_data, "Datasets/shiri_aim3_studyids.csv"))
+#write_csv(shiri_aim3_wide, file.path(secure_data, "Datasets/SHIRI_AIM3_WIDE.csv"))
+#write_csv(shiri_aim3_wide_vax, file.path(secure_data, "Datasets/SHIRI_AIM3_vaccinated.csv"))
+#write_csv(shiri_aim3_cleaned, file.path(secure_data, "Datasets/SHIRI_AIM3_CLEANED_UPDATED.csv"))
+#write_csv(shiri_aim3_wide_vax_phuk, file.path(secure_data, "Datasets/shiri_aim3_wide_vax_phuk.csv"))
+#write_csv(shiri_aim3_wide_vax_bris, file.path(secure_data, "Datasets/shiri_aim3_wide_vax_bris.csv"))
+#write_csv(shiri_aim3_wide_vax, file.path(secure_data, "Datasets/shiri_aim3_wide_vax.csv"))
