@@ -4,7 +4,7 @@
 #Author: Skyler Rogers
 #Email: skyroger@umich.edu
 
-##Last updated: 05/04/2026
+##Last updated: 05/13/2026
 #_____________________________________________________
 
 #Notes
@@ -26,6 +26,10 @@ pacman::p_load(
   tidyverse,
   survival,
   lubridate) 
+
+# Set working directory ---------------------------------------------------
+secure_data <- Sys.getenv("SECURE_DATA_PATH")
+setwd(secure_data)
 
 # Functions ---------------------------------------------------------------
 #calculate geometric mean titer (GMT) values
