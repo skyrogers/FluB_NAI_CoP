@@ -1124,7 +1124,7 @@ gtsave(table_gmt_q2_hai, filename = file.path(secure_data, "Tables + Figures/q2_
 shiri_wide_cor <- shiri_aim3_wide_vax %>%
   drop_na(PHU_BYAM_LOG_NAI_S1, PHU_BYAM_LOG_NAI_S2, PHU_BYAM_LOG_HAI_S1, PHU_BYAM_LOG_HAI_S2,BRIS_BVIC_LOG_NAI_S1, BRIS_BVIC_LOG_NAI_S2, BRIS_BVIC_LOG_HAI_S1, BRIS_BVIC_LOG_HAI_S2) 
 #select variables for correlation analysis
-shiri_wide_cor <- shiri_aim3_wide_vax_cor %>%
+shiri_wide_cor <- shiri_wide_cor %>%
   select(PHU_BYAM_NAI_LOG2_S1, BRIS_BVIC_NAI_LOG2_S1, PHU_BYAM_HAI_LOG2_S1, BRIS_BVIC_HAI_LOG2_S1,ph_dif, ph_dif_hai, bris_dif, bris_dif_hai)
 #calculate pearson correlation coefficients and format table
 cor_table <-cor(shiri_wide_cor)
