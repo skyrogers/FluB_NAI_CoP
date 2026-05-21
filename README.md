@@ -8,4 +8,4 @@ Analysis used for manuscript "Protective effects of influenza B neuraminidase an
 ### RStudio Version Details:
 Analysis for the manuscript was run using RStudio version 4.5.2. 
 Versions of the packages utilized in analysis can be seen below:
-survival_3.8-3, lubridate_1.9.4, forcats_1.0.0,  stringr_1.5.1, purrr_1.2.1, tibble_3.2.1, tidyverse_2.0.0, patchwork_1.3.2, ggplot2_4.0.2, gt_1.0.0, gtsummary_2.2.0, writexl_1.5.4, tidyr_1.3.1, dplyr_1.2.0, haven_2.5.4, readr_2.1.5 
+Hmisc_5.2-5, survival_3.8-3, lubridate_1.9.4, forcats_1.0.0,  stringr_1.5.1, purrr_1.2.1, tibble_3.2.1, tidyverse_2.0.0, patchwork_1.3.2, ggplot2_4.0.2, gt_1.0.0, gtsummary_2.2.0, writexl_1.5.4, tidyr_1.3.1, dplyr_1.2.0, haven_2.5.4, readr_2.1.5 
