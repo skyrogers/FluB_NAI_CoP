@@ -1,13 +1,16 @@
 #_____________________________________________________
-#Aim 3 SHIRI: Influenza B Neuraminidase Correlates of Protection Analysis
+#SHIRI: Influenza B Neuraminidase Correlates of Protection Analysis
 #R file name: SHIRI_aim3_clean.R
 #Author: Skyler Rogers
 #Email: skyroger@umich.edu
 
-##Last updated: 05/04/2026
+##Last updated: 05/21/2026
 #_____________________________________________________
 
 #Notes
+#For manuscript: 'Protective effects of influenza B neuraminidase antibodies against symptomatic influenza virus infection'
+#Code was run using RStudio version 4.5.2
+
 #manuscript colors:
 #B/Phuket: #f28e69
 #B/Brisbane: "#1E76C3"
@@ -25,11 +28,8 @@ pacman::p_load(
   patchwork, 
   tidyverse,
   survival,
-  lubridate) 
-
-# Set working directory ---------------------------------------------------
-secure_data <- Sys.getenv("SECURE_DATA_PATH")
-setwd(secure_data)
+  lubridate,
+  Hmisc) 
 
 # Functions ---------------------------------------------------------------
 #calculate geometric mean titer (GMT) values
@@ -86,6 +86,10 @@ gmfr <- function(s1_val, s2_val) {
 } 
 
 # Data cleaning / setup -----------------------------------------------------------
+
+#set working dictionary
+secure_data <- Sys.getenv("SECURE_DATA_PATH")
+setwd(secure_data)
 
 #Import data
 shiri_aim3_cleaned <- read_sas("Datasets/shiri_aim3_final.sas7bdat")
@@ -278,7 +282,7 @@ gt_table1 <- as_gt(table1) %>%
 gt_table1
 gtsave(gt_table1, filename = file.path(secure_data, "Tables + Figures/table1_case_stat.docx"))
 
-# Analysis Q1 ----------------------------------------------------------------
+# Baseline Titer Analysis  ----------------------------------------------------------------
 ##Q1: Is S1 titer values different between influenza vaccinated and unvaccinated HCP?
 
 #remove participants with missing S1 collection from analysis
@@ -340,21 +344,6 @@ qqline(shiri_aim3_wide_q1$BRIS_BVIC_NAI_LOG2_S1)
 t.test(shiri_aim3_wide_q1$PHU_BYAM_HAI_LOG2_S1~ shiri_aim3_wide_q1$VACC_STAT_2017) #p-value = 0.02051
 #wilcox.test(shiri_aim3_wide_q1$PHU_BYAM_HAI_LOG2_S1 ~ shiri_aim3_wide_q1$VACC_STAT_2017) #p-value = 0.02236
 
-phuket_hai_vax <- ggplot(shiri_aim3_wide_q1, aes(x=factor(VACC_STAT_2017), y=PHU_BYAM_HAI_LOG2_S1)) +
-  geom_violin(fill = "#f28e69") +
-  stat_summary(fun = mean, geom = "crossbar", 
-               width = 0.75, color = "black", linetype = "dashed", linewidth= 0.3) +
-  geom_jitter(shape=16, alpha=0.25,position=position_jitter(0.2), size=1)+
-  #  ggtitle("NAI B/Phuket/3073/2013") +
-  xlab("Influenza Vaccination Status") +
-  scale_x_discrete(labels = c("0" = "Unvaccinated", "1" = "Vaccinated")) +
-  # ylab(expression(log[2]~'HAI Titer')) + #log2 transformed label y axis
-  ylab(expression('HAI Titer')) + #non-transformed titer label y axis
-  #scale_y_continuous(breaks = seq(0, 13, 1), limits = c(0, 13)) +   #log2 transformed scale y axis
-  scale_y_continuous(breaks = log_breaks, labels = log_labels, limits=c(1.75,12.75)) + #non-transformed titer scale y axis
-  theme_minimal() +
-  theme(legend.position = "none")
-phuket_hai_vax
 #check for normality
 hist(shiri_aim3_wide_q1$PHU_BYAM_HAI_LOG2_S1)
 qqnorm(shiri_aim3_wide_q1$PHU_BYAM_HAI_LOG2_S1)
@@ -364,21 +353,6 @@ qqline(shiri_aim3_wide_q1$PHU_BYAM_HAI_LOG2_S1)
 t.test(shiri_aim3_wide_q1$BRIS_BVIC_HAI_LOG2_S1 ~ shiri_aim3_wide_q1$VACC_STAT_2017) #p-value = 0.1916
 #wilcox.test(shiri_aim3_wide_q1$BRIS_BVIC_HAI_LOG2_S1 ~ shiri_aim3_wide_q1$VACC_STAT_2017) #p-value = 0.08192
 
-brisbane_hai_vax <-ggplot(shiri_aim3_wide_q1, aes(x=factor(VACC_STAT_2017), y=BRIS_BVIC_HAI_LOG2_S1)) +
-  geom_violin(fill = "#1E76C3")+
-  stat_summary(fun = mean, geom = "crossbar", 
-               width = 0.75, color = "black", linetype = "dashed", linewidth= 0.3) +
-  geom_jitter(shape=16, alpha=0.25,position=position_jitter(0.2), size=1)+
-  # ggtitle("NAI B/Brisbane/60/2008") +
-  xlab("Influenza Vaccination Status") +
-  scale_x_discrete(labels = c("0" = "Unvaccinated", "1" = "Vaccinated")) +
-  # ylab(expression(log[2]~'HAI Titer')) + #log2 transformed label y axis
-  ylab(expression('HAI Titer')) + #non-transformed titer label y axis
-  #scale_y_continuous(breaks = seq(0, 13, 1), limits = c(0, 13)) +   #log2 transformed scale y axis
-  scale_y_continuous(breaks = log_breaks, labels = log_labels, limits=c(1.75,12.75)) + #non-transformed titer scale y axis
-  theme_minimal() +
-  theme(legend.position = "none")
-brisbane_hai_vax
 #check for normality 
 hist(shiri_aim3_wide_q1$BRIS_BVIC_HAI_LOG2_S1)
 qqnorm(shiri_aim3_wide_q1$BRIS_BVIC_HAI_LOG2_S1)
@@ -387,8 +361,6 @@ qqline(shiri_aim3_wide_q1$BRIS_BVIC_HAI_LOG2_S1)
 #format figures using patchwork
 nai_vax_boxplots <-phuket_nai_vax + brisbane_nai_vax
 nai_vax_boxplots
-hai_vax_boxplots <-phuket_hai_vax + brisbane_hai_vax
-hai_vax_boxplots
 ggsave(plot = nai_vax_boxplots, width = 10, height = 5, dpi = 300, filename = file.path(secure_data, "Tables + Figures/nai_vax_boxplots.png"))
 
 #GMT at enrollment by vaccination status
@@ -483,22 +455,22 @@ table_gmt_q1_hai <- table_gmt_q1_hai %>%
   cols_align(
     align = "left",   
     columns = everything())%>%
-  tab_style(
-    style = cell_text(weight = "bold"),
-    locations = cells_column_labels(columns = everything())) %>%
+#  tab_style(
+#    style = cell_text(weight = "bold"),
+#    locations = cells_column_labels(columns = everything())) %>%
   cols_label(
-    Variables = "HAI Titer Measurements",
-    Column_1 = "S1 GMT Influenza Unvaccinated",
-    Column_2 = "S1 GMT Influenza Vaccinated",
-    Column_3 = "GMT Ratio",
-    Column_4 = "p-value") %>%
+    Variables = md("**HAI Titer Measurements**"),
+    Column_1 = md("**S1 GMT Influenza Unvaccinated**"),
+    Column_2 = md("**S1 GMT Influenza Vaccinated**"),
+    Column_3 = md("**GMT Ratio**"),
+    Column_4 = md("**p-value**")) %>%
   tab_options(
     heading.align = "left")%>%
   tab_footnote(
     footnote = md("p-value for test of baseline GMT by influenza vaccination status for each antigen using independent t-tests."),
     locations = cells_column_labels(columns = Column_4))%>%
   tab_footnote(
-    footnote = md("*p* < 0.05 ( * ), *p* < 0.01 ( ** ), *p* < 0.001 ( *** )"),
+    footnote = md("p < 0.05 ( * ), p < 0.01 ( ** ), p < 0.001 ( *** )"),
     locations = cells_column_labels(columns = Column_4))%>%
   tab_footnote(
     footnote = md("GMT (95% CI)"),
@@ -507,10 +479,10 @@ table_gmt_q1_hai <- table_gmt_q1_hai %>%
     footnote = md("GMT Ratio (95% CI)"),
     locations = cells_column_labels(columns = Column_3))
 table_gmt_q1_hai
-gtsave(table_gmt_q1_hai, filename = file.path(secure_data, "Tables + Figures/q1_gmt_table_hai.pdf"))
+gtsave(table_gmt_q1_hai, filename = file.path(secure_data, "Tables + Figures/q1_gmt_table_hai.docx"))
 
 
-## Association between NAI titers and IBV infection --------------------
+# Association between NAI titers and IBV infection --------------------
 
 ## Time varying left-truncated cox proportional-hazards model with robust sandwich estimators ----------------------------------------------
 #Data cleaning
@@ -641,7 +613,7 @@ fit.coxphtv_inf_phuk_left_adj <- coxph(coxphtv_inf_phuk_left_adj, data = shiri_t
 summary(fit.coxphtv_inf_bris_left_adj) 
 summary(fit.coxphtv_inf_phuk_left_adj) 
 
-# Sensitivity analysis -------------------------------------
+## Sensitivity analysis -------------------------------------
 # risk start on specificity date, assume no waning before
 # data cleaning 
 shiri_tvcoxph_phuk$start_circulate <- as.Date("2017-12-01") #define a finer wave within the study period, start date = before the first IBV case detected in the study period
@@ -688,7 +660,7 @@ fit.coxphtv_inf_phuk_left_adj_sens <- coxph(coxphtv_inf_phuk_left_adj, data = sh
 summary(fit.coxphtv_inf_bris_left_adj_sens) 
 summary(fit.coxphtv_inf_phuk_left_adj_sens) 
 
-# Cox proportional-hazards model tables ------------------------------------------------------------------
+### Cox proportional-hazards model tables ------------------------------------------------------------------
 #Time-varying left truncated cox proportional hazards model
 table_tvcoxph <- data.frame(
   Variables = c("Phuket NAI",
@@ -779,7 +751,7 @@ table_coxph_sens <- data.frame(
 table_coxph_sens$Spacer1 <- ""
 table_coxph_sens$Spacer2 <- ""
 
-# Generate sensetivity using the gt format
+# Generate sensitivity analysis table
 table_coxph_sens <- table_coxph_sens %>%
   gt(groupname_col = "Block") %>%
   cols_label(
@@ -827,7 +799,7 @@ table_coxph_sens <- table_coxph_sens %>%
 table_coxph_sens
 gtsave(table_coxph_sens, filename = file.path(secure_data, "Tables + Figures/table_sensitivity.docx"))
 
-# Analysis Q3 -------------------------------------------------------------
+# Vaccine Immunogenicity Analysis -------------------------------------------------------------
 #Did vaccination change antibody levels?
 #187 vaccinated participants
 
@@ -1146,6 +1118,106 @@ table_gmt_q2_hai <- table_gmt_q2_hai %>%
     locations = cells_column_labels(columns = Column_3))
 table_gmt_q2_hai
 gtsave(table_gmt_q2_hai, filename = file.path(secure_data, "Tables + Figures/q2_gmt_s1s2_table_hai.pdf"))
+
+## Supplement immunogenicity analysis --------------------------------------
+#filter NA values (same population as immunogenicity, need to remove 1 from Phuket analysis for missing Brisbane data, n=184 for both antigens)
+shiri_wide_cor <- shiri_aim3_wide_vax %>%
+  drop_na(PHU_BYAM_LOG_NAI_S1, PHU_BYAM_LOG_NAI_S2, PHU_BYAM_LOG_HAI_S1, PHU_BYAM_LOG_HAI_S2,BRIS_BVIC_LOG_NAI_S1, BRIS_BVIC_LOG_NAI_S2, BRIS_BVIC_LOG_HAI_S1, BRIS_BVIC_LOG_HAI_S2) 
+#select variables for correlation analysis
+shiri_wide_cor <- shiri_aim3_wide_vax_cor %>%
+  select(PHU_BYAM_NAI_LOG2_S1, BRIS_BVIC_NAI_LOG2_S1, PHU_BYAM_HAI_LOG2_S1, BRIS_BVIC_HAI_LOG2_S1,ph_dif, ph_dif_hai, bris_dif, bris_dif_hai)
+#calculate pearson correlation coefficients and format table
+cor_table <-cor(shiri_wide_cor)
+cor_table <- cor_table %>%
+  as_tibble(rownames = 'var_a')%>%
+  pivot_longer(
+    -var_a, 
+    names_to = "var_b",
+    values_to = "correlation"
+  )
+
+#obtain pearson correlation p-values and format table
+p_calc <- rcorr(as.matrix(shiri_wide_cor))
+p_val<-p_calc$P
+p_val_table <- p_val %>%
+  as_tibble(rownames = 'var_a')%>%
+  pivot_longer(
+    -var_a, 
+    names_to = "var_b",
+    values_to = "pval"
+  )
+
+#combine correlation and p-value data frames
+cor_table_comb <- left_join(cor_table, p_val_table)
+cor_table_comb <- cor_table_comb %>%
+  mutate(sig = ifelse(pval < .001, "***", 
+                      ifelse(pval < .01, "**", 
+                             ifelse(pval < .05, "*", ""))))%>%
+  mutate(sig = replace_na(as.character(sig), ""))%>%
+  mutate(corr_rounded = format(round(correlation, 2)))
+cor_table_comb$cor_sig <- paste(cor_table_comb$corr_rounded, cor_table_comb$sig)
+
+#factor variables
+var_names <- unique(cor_table_comb$var_a)
+cor_table_factored <- cor_table_comb %>%
+  mutate(var_a= factor(var_a, levels = var_names),
+        var_b = factor(var_b, levels = rev(var_names)))
+#relabel variable names
+cor_table_relabeled <- cor_table_factored %>%
+  mutate(var_a = fct_relabel(var_a,\(x) recode_values(x,
+                                                      'PHU_BYAM_NAI_LOG2_S1' ~'S1 B/Phuket NAI',
+                                                      'BRIS_BVIC_NAI_LOG2_S1' ~ 'S1 B/Brisbane NAI',
+                                                      'PHU_BYAM_HAI_LOG2_S1' ~ 'S1 B/Phuket HAI',
+                                                      'BRIS_BVIC_HAI_LOG2_S1' ~ 'S1 B/Brisbane HAI',
+                                                      'ph_dif' ~ 'B/Phuket NAI titer fold-change',
+                                                      'ph_dif_hai' ~ 'B/Phuket HAI titer fold-change',
+                                                      'bris_dif' ~ 'B/Brisbane NAI titer fold-change',
+                                                      'bris_dif_hai' ~ 'B/Brisbane HAI titer fold-change'
+  )),
+  var_b = fct_relabel(var_b,\(x) recode_values(x,
+                                               'PHU_BYAM_NAI_LOG2_S1' ~'S1 B/Phuket NAI',
+                                               'BRIS_BVIC_NAI_LOG2_S1' ~ 'S1 B/Brisbane NAI',
+                                               'PHU_BYAM_HAI_LOG2_S1' ~ 'S1 B/Phuket HAI',
+                                               'BRIS_BVIC_HAI_LOG2_S1' ~ 'S1 B/Brisbane HAI',
+                                               'ph_dif' ~ 'B/Phuket NAI titer fold-change',
+                                               'ph_dif_hai' ~ 'B/Phuket HAI titer fold-change',
+                                               'bris_dif' ~ 'B/Brisbane NAI titer fold-change',
+                                               'bris_dif_hai' ~ 'B/Brisbane HAI titer fold-change'
+  )))
+#format for separated heatmap / correlation coefficient values
+cor_table_relabeled <- cor_table_relabeled %>%
+  mutate(lvl_a = as.numeric(var_a),
+         lvl_b = as.numeric(var_b %>% fct_rev()),
+         correlation = ifelse(lvl_a<lvl_b, correlation, NA ))
+cor_table_relabeled_rev <- cor_table_relabeled %>%
+  mutate(lvl_a = as.numeric(var_a),
+         lvl_b = as.numeric(var_b %>% fct_rev()),
+         correlation = ifelse(lvl_a > lvl_b, correlation, NA )) %>%
+  mutate(cor_sig = if_else(is.na(correlation), NA, cor_sig))
+#make correlation matrix
+cor_table_heat_check <- cor_table_relabeled%>%
+  ggplot(aes(var_a, var_b))+
+  geom_tile(aes(fill = correlation), color= 'black') +
+  geom_text(
+    data = cor_table_relabeled_rev,
+    aes(label = cor_sig), 
+    color = ifelse(abs(cor_table$correlation) > 0.8,
+                   'white', 'black'))+
+  theme_minimal(base_size = 16) +
+  labs(y= element_blank(),
+       x= element_blank(), 
+       fill = expression("Correlation (" ~ italic(r) ~")"),
+       caption = "p < 0.05 ( * ), p < 0.01 ( ** ), p < 0.001 ( *** )")+
+  scale_fill_gradient2(high = 'blue',
+                       low= 'orange1',
+                       na.value = 'white',
+                       limits = c(-1,1))+
+  coord_cartesian(expand = FALSE) + 
+  scale_x_discrete(labels = function(x) str_wrap(x, width = 10))+
+  scale_y_discrete(labels = function(x) str_wrap(x, width = 10)) +
+  theme(axis.text.y = element_text(hjust = 0.5),
+        plot.caption = element_text(hjust = 0))
+ggsave(plot = cor_table_heat_check, width = 12, height = 9, dpi = 600, filename = file.path(secure_data, "Tables + Figures/cor_table_heatmap.tiff"))
 
 #save datasets
 #write_csv(shiri_aim3_studyids, file.path(secure_data, "Datasets/shiri_aim3_studyids.csv"))
