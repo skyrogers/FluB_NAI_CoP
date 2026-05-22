@@ -1039,7 +1039,6 @@ geometric_summary_log2(shiri_aim3_wide_vax_bris$BRIS_BVIC_HAI_LOG2_S2) #GMT(95% 
 gmfr(shiri_aim3_wide_vax_phuk$PHU_BYAM_HAI_LOG2_S1,shiri_aim3_wide_vax_phuk$PHU_BYAM_HAI_LOG2_S2) #B/Phuket HAI GMFR (95% CI) code: 1.1 (1.0, 1.3)
 gmfr(shiri_aim3_wide_vax_bris$BRIS_BVIC_HAI_LOG2_S1, shiri_aim3_wide_vax_bris$BRIS_BVIC_HAI_LOG2_S2) #B/Brisbane HAI GMFR (95% CI) code: 1.4 (1.3, 1.6)
 
-
 #GMT table S1 and S2 collection points
 #NAI
 table_gmt_q2 <- data.frame(
@@ -1121,33 +1120,30 @@ gtsave(table_gmt_q2_hai, filename = file.path(secure_data, "Tables + Figures/q2_
 
 ## Supplement immunogenicity analysis --------------------------------------
 #filter NA values (same population as immunogenicity, need to remove 1 from Phuket analysis for missing Brisbane data, n=184 for both antigens)
-shiri_wide_cor <- shiri_aim3_wide_vax %>%
+shiri_aim3_wide_vax_cor <- shiri_aim3_wide_vax %>%
   drop_na(PHU_BYAM_LOG_NAI_S1, PHU_BYAM_LOG_NAI_S2, PHU_BYAM_LOG_HAI_S1, PHU_BYAM_LOG_HAI_S2,BRIS_BVIC_LOG_NAI_S1, BRIS_BVIC_LOG_NAI_S2, BRIS_BVIC_LOG_HAI_S1, BRIS_BVIC_LOG_HAI_S2) 
-#select variables for correlation analysis
-shiri_wide_cor <- shiri_wide_cor %>%
+#keep variables for correlation analysis
+shiri_wide_cor <- shiri_aim3_wide_vax_cor %>%
   select(PHU_BYAM_NAI_LOG2_S1, BRIS_BVIC_NAI_LOG2_S1, PHU_BYAM_HAI_LOG2_S1, BRIS_BVIC_HAI_LOG2_S1,ph_dif, ph_dif_hai, bris_dif, bris_dif_hai)
-#calculate pearson correlation coefficients and format table
 cor_table <-cor(shiri_wide_cor)
-cor_table <- cor_table %>%
-  as_tibble(rownames = 'var_a')%>%
-  pivot_longer(
-    -var_a, 
-    names_to = "var_b",
-    values_to = "correlation"
-  )
 
-#obtain pearson correlation p-values and format table
+#long format tables for merging 
 p_calc <- rcorr(as.matrix(shiri_wide_cor))
 p_val<-p_calc$P
 p_val_table <- p_val %>%
-  as_tibble(rownames = 'var_a')%>%
+  as_tibble(rownames = 'col_a')%>%
   pivot_longer(
-    -var_a, 
-    names_to = "var_b",
+    -col_a, 
+    names_to = "col_b",
     values_to = "pval"
   )
-
-#combine correlation and p-value data frames
+cor_table <- cor_table %>%
+  as_tibble(rownames = 'col_a')%>%
+  pivot_longer(
+    -col_a, 
+    names_to = "col_b",
+    values_to = "correlation"
+  )
 cor_table_comb <- left_join(cor_table, p_val_table)
 cor_table_comb <- cor_table_comb %>%
   mutate(sig = ifelse(pval < .001, "***", 
@@ -1155,16 +1151,16 @@ cor_table_comb <- cor_table_comb %>%
                              ifelse(pval < .05, "*", ""))))%>%
   mutate(sig = replace_na(as.character(sig), ""))%>%
   mutate(corr_rounded = format(round(correlation, 2)))
+#merge correlation and p-value significance cells
 cor_table_comb$cor_sig <- paste(cor_table_comb$corr_rounded, cor_table_comb$sig)
-
 #factor variables
-var_names <- unique(cor_table_comb$var_a)
+variable_names <- unique(cor_table_comb$col_a)
 cor_table_factored <- cor_table_comb %>%
-  mutate(var_a= factor(var_a, levels = var_names),
-        var_b = factor(var_b, levels = rev(var_names)))
-#relabel variable names
+  mutate(col_a= factor(col_a, levels = variable_names),
+          col_b = factor(col_b, levels = rev(variable_names)))
+#relabel variable names for heatmap
 cor_table_relabeled <- cor_table_factored %>%
-  mutate(var_a = fct_relabel(var_a,\(x) recode_values(x,
+  mutate(col_a = fct_relabel(col_a,\(x) recode_values(x,
                                                       'PHU_BYAM_NAI_LOG2_S1' ~'S1 B/Phuket NAI',
                                                       'BRIS_BVIC_NAI_LOG2_S1' ~ 'S1 B/Brisbane NAI',
                                                       'PHU_BYAM_HAI_LOG2_S1' ~ 'S1 B/Phuket HAI',
@@ -1174,7 +1170,7 @@ cor_table_relabeled <- cor_table_factored %>%
                                                       'bris_dif' ~ 'B/Brisbane NAI titer fold-change',
                                                       'bris_dif_hai' ~ 'B/Brisbane HAI titer fold-change'
   )),
-  var_b = fct_relabel(var_b,\(x) recode_values(x,
+  col_b = fct_relabel(col_b,\(x) recode_values(x,
                                                'PHU_BYAM_NAI_LOG2_S1' ~'S1 B/Phuket NAI',
                                                'BRIS_BVIC_NAI_LOG2_S1' ~ 'S1 B/Brisbane NAI',
                                                'PHU_BYAM_HAI_LOG2_S1' ~ 'S1 B/Phuket HAI',
@@ -1184,29 +1180,25 @@ cor_table_relabeled <- cor_table_factored %>%
                                                'bris_dif' ~ 'B/Brisbane NAI titer fold-change',
                                                'bris_dif_hai' ~ 'B/Brisbane HAI titer fold-change'
   )))
-#format for separated heatmap / correlation coefficient values
-cor_table_relabeled <- cor_table_relabeled %>%
-  mutate(lvl_a = as.numeric(var_a),
-         lvl_b = as.numeric(var_b %>% fct_rev()),
-         correlation = ifelse(lvl_a<lvl_b, correlation, NA ))
-cor_table_relabeled_rev <- cor_table_relabeled %>%
-  mutate(lvl_a = as.numeric(var_a),
-         lvl_b = as.numeric(var_b %>% fct_rev()),
-         correlation = ifelse(lvl_a > lvl_b, correlation, NA )) %>%
+
+cor_table_relabeled_leveled <- cor_table_relabeled %>%
+  mutate(sec_a = as.numeric(col_a),
+         sec_b = as.numeric(col_b %>% fct_rev()),
+         correlation = ifelse(sec_a<sec_b, correlation, NA ))
+cor_table_relabeled_leveled_rev <- cor_table_relabeled %>%
+  mutate(sec_a = as.numeric(col_a),
+         sec_b = as.numeric(col_b %>% fct_rev()),
+         correlation = ifelse(sec_a > sec_b, correlation, NA )) %>%
   mutate(cor_sig = if_else(is.na(correlation), NA, cor_sig))
-#make correlation matrix
-cor_table_heat_check <- cor_table_relabeled%>%
-  ggplot(aes(var_a, var_b))+
+
+cor_table_heatmap <- cor_table_relabeled_leveled%>%
+  ggplot(aes(col_a, col_b))+
   geom_tile(aes(fill = correlation), color= 'black') +
   geom_text(
-    data = cor_table_relabeled_rev,
-    aes(label = cor_sig), 
-    color = ifelse(abs(cor_table$correlation) > 0.8,
-                   'white', 'black'))+
+    data = cor_table_relabeled_check_rev,
+    aes(label = cor_sig))+
   theme_minimal(base_size = 16) +
-  labs(y= element_blank(),
-       x= element_blank(), 
-       fill = expression("Correlation (" ~ italic(r) ~")"),
+  labs(fill = expression("Correlation (" ~ italic(r) ~")"),
        caption = "p < 0.05 ( * ), p < 0.01 ( ** ), p < 0.001 ( *** )")+
   scale_fill_gradient2(high = 'blue',
                        low= 'orange1',
@@ -1216,8 +1208,13 @@ cor_table_heat_check <- cor_table_relabeled%>%
   scale_x_discrete(labels = function(x) str_wrap(x, width = 10))+
   scale_y_discrete(labels = function(x) str_wrap(x, width = 10)) +
   theme(axis.text.y = element_text(hjust = 0.5),
-        plot.caption = element_text(hjust = 0))
-ggsave(plot = cor_table_heat_check, width = 12, height = 9, dpi = 600, filename = file.path(secure_data, "Tables + Figures/cor_table_heatmap.tiff"))
+        plot.caption = element_text(hjust = 0),
+        axis.title.x = element_blank(),
+        axis.title.y =  element_blank())
+# theme(axis.text.x = element_text(angle = 30, vjust = 1, hjust = 1))
+#guides(x = guide_axis(n.dodge = 2))
+cor_table_heatmap
+ggsave(plot = cor_table_heatmap, width = 12, height = 9, dpi = 600, filename = file.path(secure_data, "Tables + Figures/cor_table_heatmap.tiff"))
 
 #save datasets
 #write_csv(shiri_aim3_studyids, file.path(secure_data, "Datasets/shiri_aim3_studyids.csv"))
