@@ -1120,6 +1120,7 @@ gtsave(table_gmt_q2_hai, filename = file.path(secure_data, "Tables + Figures/q2_
 
 ## Supplement immunogenicity analysis --------------------------------------
 #filter NA values (same population as immunogenicity, need to remove 1 from Phuket analysis for missing Brisbane data, n=184 for both antigens)
+#filter NA values (same population as immunogenicity, need to remove 1 from Phuket analysis for missing Brisbane data, n=184 for both antigens)
 shiri_aim3_wide_vax_cor <- shiri_aim3_wide_vax %>%
   drop_na(PHU_BYAM_LOG_NAI_S1, PHU_BYAM_LOG_NAI_S2, PHU_BYAM_LOG_HAI_S1, PHU_BYAM_LOG_HAI_S2,BRIS_BVIC_LOG_NAI_S1, BRIS_BVIC_LOG_NAI_S2, BRIS_BVIC_LOG_HAI_S1, BRIS_BVIC_LOG_HAI_S2) 
 #keep variables for correlation analysis
@@ -1184,7 +1185,7 @@ cor_table_relabeled <- cor_table_factored %>%
 cor_table_relabeled_leveled <- cor_table_relabeled %>%
   mutate(sec_a = as.numeric(col_a),
          sec_b = as.numeric(col_b %>% fct_rev()),
-         correlation = ifelse(sec_a<sec_b, correlation, NA ))
+         correlation = ifelse(sec_a<=sec_b, correlation, NA ))
 cor_table_relabeled_leveled_rev <- cor_table_relabeled %>%
   mutate(sec_a = as.numeric(col_a),
          sec_b = as.numeric(col_b %>% fct_rev()),
@@ -1214,7 +1215,7 @@ cor_table_heatmap <- cor_table_relabeled_leveled%>%
 # theme(axis.text.x = element_text(angle = 30, vjust = 1, hjust = 1))
 #guides(x = guide_axis(n.dodge = 2))
 cor_table_heatmap
-ggsave(plot = cor_table_heatmap, width = 12, height = 9, dpi = 600, filename = file.path(secure_data, "Tables + Figures/cor_table_heatmap.tiff"))
+ggsave(plot = cor_table_heatmap, width = 12, height = 9, dpi = 600, filename = file.path(secure_data, "Tables + Figures/rogers_supplement_figure2.tiff"))
 
 #save datasets
 #write_csv(shiri_aim3_studyids, file.path(secure_data, "Datasets/shiri_aim3_studyids.csv"))
