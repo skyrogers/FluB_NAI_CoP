@@ -1120,7 +1120,6 @@ gtsave(table_gmt_q2_hai, filename = file.path(secure_data, "Tables + Figures/q2_
 
 ## Supplement immunogenicity analysis --------------------------------------
 #filter NA values (same population as immunogenicity, need to remove 1 from Phuket analysis for missing Brisbane data, n=184 for both antigens)
-#filter NA values (same population as immunogenicity, need to remove 1 from Phuket analysis for missing Brisbane data, n=184 for both antigens)
 shiri_aim3_wide_vax_cor <- shiri_aim3_wide_vax %>%
   drop_na(PHU_BYAM_LOG_NAI_S1, PHU_BYAM_LOG_NAI_S2, PHU_BYAM_LOG_HAI_S1, PHU_BYAM_LOG_HAI_S2,BRIS_BVIC_LOG_NAI_S1, BRIS_BVIC_LOG_NAI_S2, BRIS_BVIC_LOG_HAI_S1, BRIS_BVIC_LOG_HAI_S2) 
 #keep variables for correlation analysis
@@ -1185,19 +1184,16 @@ cor_table_relabeled <- cor_table_factored %>%
 cor_table_relabeled_leveled <- cor_table_relabeled %>%
   mutate(sec_a = as.numeric(col_a),
          sec_b = as.numeric(col_b %>% fct_rev()),
-         correlation = ifelse(sec_a<=sec_b, correlation, NA ))
-cor_table_relabeled_leveled_rev <- cor_table_relabeled %>%
-  mutate(sec_a = as.numeric(col_a),
-         sec_b = as.numeric(col_b %>% fct_rev()),
-         correlation = ifelse(sec_a > sec_b, correlation, NA )) %>%
+         correlation = ifelse(sec_a<=sec_b, correlation, NA )) %>%
   mutate(cor_sig = if_else(is.na(correlation), NA, cor_sig))
 
 cor_table_heatmap <- cor_table_relabeled_leveled%>%
   ggplot(aes(col_a, col_b))+
-  geom_tile(aes(fill = correlation), color= 'black') +
+  geom_tile(aes(fill = correlation)) +
   geom_text(
-    data = cor_table_relabeled_check_rev,
-    aes(label = cor_sig))+
+    aes(label = cor_sig), 
+    color = ifelse(abs(cor_table$correlation) > 0.8,
+                   'white', 'black'))+
   theme_minimal(base_size = 16) +
   labs(fill = expression("Correlation (" ~ italic(r) ~")"),
        caption = "p < 0.05 ( * ), p < 0.01 ( ** ), p < 0.001 ( *** )")+
@@ -1211,9 +1207,12 @@ cor_table_heatmap <- cor_table_relabeled_leveled%>%
   theme(axis.text.y = element_text(hjust = 0.5),
         plot.caption = element_text(hjust = 0),
         axis.title.x = element_blank(),
-        axis.title.y =  element_blank())
-# theme(axis.text.x = element_text(angle = 30, vjust = 1, hjust = 1))
-#guides(x = guide_axis(n.dodge = 2))
+        axis.title.y =  element_blank(),
+        legend.justification = c(1, 0),
+        legend.position = c(0.9, 0.75),
+        legend.direction = "horizontal")+
+  guides(fill = guide_colorbar(barwidth = 13, barheight = 2.5,
+                               title.position = "top", title.hjust = 0.5))
 cor_table_heatmap
 ggsave(plot = cor_table_heatmap, width = 12, height = 9, dpi = 600, filename = file.path(secure_data, "Tables + Figures/rogers_supplement_figure2.tiff"))
 
