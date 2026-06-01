@@ -345,7 +345,7 @@ t.test(shiri_aim3_wide_q1$PHU_BYAM_HAI_LOG2_S1~ shiri_aim3_wide_q1$VACC_STAT_201
 #wilcox.test(shiri_aim3_wide_q1$PHU_BYAM_HAI_LOG2_S1 ~ shiri_aim3_wide_q1$VACC_STAT_2017) #p-value = 0.02236
 
 #check for normality
-hist(shiri_aim3_wide_q1$PHU_BYAM_HAI_LOG2_S1)
+hist(shiri_aim3_wide_q1$PHU_BYAM_HAI_LOG2_S1, breaks=9)
 qqnorm(shiri_aim3_wide_q1$PHU_BYAM_HAI_LOG2_S1)
 qqline(shiri_aim3_wide_q1$PHU_BYAM_HAI_LOG2_S1)
 
